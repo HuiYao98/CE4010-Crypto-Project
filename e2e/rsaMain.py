@@ -6,7 +6,7 @@ import binascii
 
 def generateKey():
    #number of bits, how many processes to run in parallel
-   (publicKey,privateKey) = rsa.newkeys(512)
+   (publicKey,privateKey) = rsa.newkeys(2048)
    return publicKey, privateKey
 
 def encryptMessage(publicKey, message):
@@ -26,4 +26,3 @@ def main():
    print(encryptedMessage)
    decryptMessage(privateKey, encryptedMessage)
 
-main()
