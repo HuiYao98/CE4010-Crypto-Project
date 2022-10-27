@@ -2,21 +2,16 @@ from Crypto.Cipher import AES
 from fileEncryptAes import decrypt_file, encrypt_file
 
 # Define key here
-key = "0123456789abcdef"
+key = "0123456789abcdef".encode("utf8")
 # Initialization vector
-IV = 16 * "\x00"       
+IV = (16 * "\x00").encode("utf8")       
 # AES Mode    
 mode = AES.MODE_CBC
 
-# Text to encrypt/decrypt -- haven't added
-text = 'hello world 1234'
+# Filename to encrypt:
+in_filenameEncrypt = "testFile.txt"
+#encrypt_file(key, in_filenameEncrypt, IV, out_filename=None, chunksize=64*1024)
 
-# Encrypting text
-encryptor = AES.new(key.encode("utf8"), mode, IV=IV.encode("utf8"))
-ciphertext = encryptor.encrypt(text.encode("utf8"))
-print(ciphertext)
-
-# Decrypting text
-decryptor = AES.new(key.encode("utf8"), mode, IV=IV.encode("utf8"))
-plain = decryptor.decrypt(ciphertext)
-print(plain)
+# Filename to decrypt:
+in_filenameDecrypt = "testFile.txt.enc"
+#decrypt_file(key, in_filenameDecrypt, out_filename=None, chunksize=64*1024)

@@ -1,6 +1,7 @@
 import os, random, struct
+from Crypto.Cipher import AES
 
-def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
+def encrypt_file(key, in_filename, iv, out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
         given key.
 
@@ -24,7 +25,7 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     if not out_filename:
         out_filename = in_filename + '.enc'
 
-    iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+    # iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
     encryptor = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
 
@@ -35,11 +36,12 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
 
             while True:
                 chunk = infile.read(chunksize)
+                chunk = chunk.decode('utf8')
                 if len(chunk) == 0:
                     break
                 elif len(chunk) % 16 != 0:
                     chunk += ' ' * (16 - len(chunk) % 16)
-
+                chunk = chunk.encode('utf8')
                 outfile.write(encryptor.encrypt(chunk))
 
 def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
