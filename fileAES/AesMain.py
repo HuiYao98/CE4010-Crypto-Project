@@ -1,5 +1,5 @@
 from Crypto.Cipher import AES
-from fileEncryptAes import decrypt_file, encrypt_file
+from fileAES.fileEncryptAes import decrypt_file, encrypt_file
 
 # Define key here
 key = "0123456789abcdef".encode("utf8")
