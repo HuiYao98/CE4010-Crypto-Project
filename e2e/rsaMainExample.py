@@ -1,4 +1,3 @@
-from turtle import pu
 from Crypto import Random
 from Crypto.PublicKey import RSA
 
