@@ -1,16 +1,20 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+import secrets
 from fileAES.fileEncryptAes import decrypt_file, encrypt_file, get_file_hash
 
 def generateAESkey():
-    # Define key here -- need to come up with key generation algo thats random - AES-256
-    key = "0123456789abcdefghijklmn".encode("utf8")
+    # Random key generated here using secrets module - 32 byte key for AES-256, https://docs.python.org/3/library/secrets.html
+    # but secrets module generate 1.3 characters using this function due to base64 encoding, so put 24 byte
+    key = secrets.token_urlsafe(24)
+    key = key.encode(encoding="utf8", errors="replace")
     return key
 
 def initializeAESencrypt():
     # Get filename to encrypt
     filename = input("What is the filename that you want to encrypt?")
-    # Initialization vector
-    IV = (16 * "\x00").encode("utf8")       
+    # Initialization vector - random IV using crypto random - 16 bytes
+    IV = get_random_bytes(16)   
     # Generate AES key
     key = generateAESkey()
 
@@ -24,11 +28,4 @@ def initializeAESdecrypt(key):
 
     return key, filename
 
-# Filename to encrypt:
-#in_filenameEncrypt = "testFile.txt"
-#encrypt_file(key, in_filenameEncrypt, IV, out_filename=None, chunksize=64*1024)
-
-# Filename to decrypt:
-#in_filenameDecrypt = "testFile.txt.enc"
-#decrypt_file(key, in_filenameDecrypt, out_filename=None, chunksize=64*1024)
 

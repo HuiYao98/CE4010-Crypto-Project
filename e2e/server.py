@@ -52,18 +52,10 @@ def connectClient(s, key):
         s.close()
 
         return AESkey, publicKey, signature
-        # Used for multiple threaded message recieving --> not needed
-        #t = threading.Thread(target=recvMsg, args=(conn,key,))
-        #t.start()
-
-        #sendMsg(conn,publicKey)
-        #t = threading.Thread(target=connectClient, args=(key,s,))
-        #t.start()
     else:
         s.close()
 
 def startServer():
-
     #Set IP address & port that the server listens to -- if host is "", means listen to any ip address
     HOST = "127.0.0.1"
     PORT = 12345
@@ -74,10 +66,4 @@ def startServer():
     s.bind((HOST, PORT))
     print("[CONSOLE] Listening...")
     return s, key
-
-    # Old code -- not needed currently
-    #with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    #    s.bind((HOST, PORT))
-    #    print("[CONSOLE] Listening...")
-    #    return s, key
             
