@@ -1,0 +1,265 @@
+"""
+CA Steps:
+1. Server create a certificate signing request
+2. Send the CSR to a trusted third party
+3. TTP Verify the information
+4. TTP Generate a public key
+5. TTP Issue the verified public key server
+
+Certificates attributes:
+1. Valid start/ end date/time
+2. Name of server
+3. Name of CA
+
+generate_private_key - generate private key for CA using RSA
+generate_public key - Generate aelf signed public key & certificate for CA using private key given
+
+"""
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+from datetime import datetime, timedelta
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
+
+
+def generate_private_key(filename: str, passphrase: str):
+    '''
+    Generate private key using RSA
+
+    filename:
+    name of the file the private key will be stored on
+
+    passphrase:
+    password of the file
+    '''
+    # generate RSA Key
+    private_key = rsa.generate_private_key(
+        public_exponent=65537, key_size=1024, backend=default_backend()
+    )
+    # set up encryption algorithm to be used on private key
+    utf8_pass = passphrase.encode("utf-8")
+    algorithm = serialization.BestAvailableEncryption(utf8_pass)
+
+    # write private key to disk at specfieid file name.
+    # file encrypted using password provided
+    with open(filename, "wb") as keyfile:
+        keyfile.write(
+            private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=algorithm,
+            )
+        )
+
+    return private_key
+
+
+def generate_public_key(private_key, filename, **kwargs):
+    '''
+    Example code for generating a self-signed public key and certificate 
+
+    private key:
+    generation of public key is dependent on the private key
+    
+    filename: 
+    choose where the public key will be stored on
+
+    **kwarges:
+    parameters for the certificate 
+
+    '''
+    # information on the certificate
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, kwargs["country"]),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, kwargs["state"]),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, kwargs["locality"]),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, kwargs["org"]),
+            x509.NameAttribute(NameOID.COMMON_NAME, kwargs["hostname"]),
+        ]
+    )
+
+    # Because this is self signed, the issuer is always the subject
+    issuer = subject
+
+    # This certificate is valid from now until 30 days
+    valid_from = datetime.utcnow()
+    valid_to = valid_from + timedelta(days=30)
+
+    # Used to build the certificate
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(valid_from)
+        .not_valid_after(valid_to)
+        # Specifies this is a CA
+        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+    )
+
+    # Sign the certificate with the private key
+    public_key = builder.sign(private_key, hashes.SHA256(), default_backend())
+
+    # write public key to filename
+    with open(filename, "wb") as certfile:
+        certfile.write(public_key.public_bytes(serialization.Encoding.PEM))
+
+    return public_key
+
+
+def generate_csr(private_key, filename, **kwargs):
+
+    '''
+    Used by server to Generate a certificate signing request (CSR)
+    CSR will be sent to the Certifcate authority to be verified
+
+    private_key:
+    server private key
+
+    filename:
+    location of the the generated CSR 
+
+    **kwargs:
+    parameters for the certificate 
+    '''
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, kwargs["country"]),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, kwargs["state"]),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, kwargs["locality"]),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, kwargs["org"]),
+            x509.NameAttribute(NameOID.COMMON_NAME, kwargs["hostname"]),
+        ]
+    )
+
+    # Generate any alternative dns names, valid for your certificate
+    alt_names = []
+    for name in kwargs.get("alt_names", []):
+        alt_names.append(x509.DNSName(name))
+    san = x509.SubjectAlternativeName(alt_names)
+    # generate a different builder object,
+    # building all the required attributes for CSR
+    builder = (
+        x509.CertificateSigningRequestBuilder()
+        .subject_name(subject)
+        .add_extension(san, critical=False)
+    )
+
+    # signs the CSR with private key generated by CA
+    csr = builder.sign(private_key, hashes.SHA256(), default_backend())
+
+    # write CSR to disk in PEM format
+    with open(filename, "wb") as csrfile:
+        csrfile.write(csr.public_bytes(serialization.Encoding.PEM))
+
+    return csr
+
+
+def sign_csr(csr, ca_public_key, ca_private_key, new_filename):
+
+    '''
+    Used by the CA to sign server's CSR
+    
+    csr:
+    Server certificate signing request
+
+    ca_public_key: 
+    CA public key
+
+    ca_private_key:
+    ca private key
+
+    new_file_name:
+    write the public key (certificate) into filename 
+
+
+    
+    '''
+    valid_from = datetime.utcnow()
+    #certificate valid for 30 days from ow
+    valid_until = valid_from + timedelta(days=30)
+
+    # base the subject name on the CSR, issuer is base on the CA
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(csr.subject)
+        .issuer_name(ca_public_key.subject)
+        # get public key from CSR
+        .public_key(csr.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(valid_from)
+        .not_valid_after(valid_until)
+    )
+    # copy any extension that were set on the CSR
+    for extension in csr.extensions:
+        builder = builder.add_extension(extension.value, extension.critical)
+
+    # Sign the public key with the CA private key
+    public_key = builder.sign(
+        private_key=ca_private_key,
+        algorithm=hashes.SHA256(),
+        backend=default_backend(),
+    )
+    # write the public key to into the file
+    with open(new_filename, "wb") as keyfile:
+        keyfile.write(public_key.public_bytes(serialization.Encoding.PEM))
+
+
+# server private key
+server_private_key = generate_private_key("server-private-key.pem", "serverpassword")
+# server generate csr
+generate_csr(
+    server_private_key,
+    filename="server-csr.pem",
+    country="US",
+    state="Maryland",
+    locality="Baltimore",
+    org="My Company",
+    alt_names=["localhost"],
+    hostname="my-site.com",
+)
+"""# generate private and public key
+private_key = generate_private_key("ca-private-key.pem", "password")
+generate_public_key(
+    private_key,
+    filename="ca-public-key.pem",
+    country="SG",
+    state="SG",
+    locality="NTU",
+    org="Intro to Cryptography",
+    hostname="google.com",
+)
+"""
+
+# Begin by loading your CSR:
+#Opening server-csr.pem file 
+csr_file = open("server-csr.pem", "rb")
+#Create csr object
+csr = x509.load_pem_x509_csr(csr_file.read(), default_backend())
+
+# Load CA public key
+#opening ca-public-key.pem
+ca_public_key_file = open("ca-public-key.pem", "rb")
+#Create CA public key object
+ca_public_key = x509.load_pem_x509_certificate(
+    ca_public_key_file.read(), default_backend()
+)
+
+# load CA private key
+from getpass import getpass
+# reading ca-private-key.pem
+ca_private_key_file = open("ca-private-key.pem", "rb")
+#create CA private key object - private key was encrpted using password specifed 
+ca_private_key = serialization.load_pem_private_key(
+    ca_private_key_file.read(),
+    getpass().encode("utf-8"),
+    default_backend(),
+)
+
+# sign csr and generate public key
+sign_csr(csr, ca_public_key, ca_private_key, "server-public-key.pem")
