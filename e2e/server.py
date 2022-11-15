@@ -19,13 +19,16 @@ def sendMsg(conn,publicKey):
 
 def recvMsg(conn,key):
     try:
+        # Get encoded AES key from client
         encMessage = conn.recv(1024)
-        # Private Key is here
+        # Get signature from client
+        signature = conn.recv(256)
+        # Decrypt AES key with private RSA key
         decMessage = decryptMessage(key.exportKey(), encMessage)
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         print(f"{current_time:} {decMessage.decode()}")
-        return decMessage.decode()
+        return decMessage.decode(),signature
     except OSError:
         pass
 
@@ -36,19 +39,19 @@ def connectClient(s, key):
         s.listen()
         conn, addr = s.accept()
         print(f"[CONSOLE] connected by {addr}")
-        #Send public key to client
+        # Send own RSA public key to client
         conn.send(key.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
         print("[CONSOLE] Sent Public Key")
-        # Get public key of client
-        publicKey = RSA.importKey(conn.recv(1024), passphrase=None)
+        # Get ECC public key of client -- for signature signing -- using ECC-256
+        publicKey = ECC.import_key(conn.recv(256), passphrase=None, curve_name="P-256")
 
-        # Used to wait and recieve key from client
-        key = recvMsg(conn,key)
+        # Used to wait and recieve key & signature from client
+        AESkey, signature = recvMsg(conn,key)
 
         # Close socket connection after recieving key
         s.close()
 
-        return key
+        return AESkey, publicKey, signature
         # Used for multiple threaded message recieving --> not needed
         #t = threading.Thread(target=recvMsg, args=(conn,key,))
         #t.start()

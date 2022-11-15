@@ -1,8 +1,8 @@
 from turtle import pu
 from Crypto import Random
-from Crypto.PublicKey import RSA
-
+from Crypto.PublicKey import RSA, ECC
 from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Signature import DSS
 
 import binascii
 
@@ -12,6 +12,10 @@ def generateKey():
     key = RSA.generate(1024)
     return key
 
+# Generate ECC key pair - https://pycryptodome.readthedocs.io/en/latest/src/public_key/ecc.html#
+def generateECCKey():
+   key = ECC.generate(curve='P-256')
+   return key
 
 # encrypting the data using RSA, sender publickey
 # PKCS1_OAEP is an asymetric chipher base on RSA and OAEP padding
@@ -31,6 +35,20 @@ def decryptMessage(privateKey, message):
     cipher_rsa = PKCS1_OAEP.new(privateKey)
     return cipher_rsa.decrypt(message)
 
+# Use for signing message using ECDSA - https://pycryptodome.readthedocs.io/en/latest/src/signature/dsa.html 
+def signingMessage(key, hash):
+   signer = DSS.new(key, 'fips-186-3')
+   signature = signer.sign(hash)
+   return signature
+
+# Use for verify message using ECDSA
+def verifyMessage(key, hash, signature):
+   verifier = DSS.new(key, 'fips-186-3')
+   try:
+      verifier.verify(hash, signature)
+      return 1
+   except ValueError:
+      return 0
 
 """
 import rsa

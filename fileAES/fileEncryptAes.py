@@ -69,7 +69,9 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
                 outfile.write(decryptor.decrypt(chunk))
 
             outfile.truncate(origsize)
+    return out_filename
 
+# Getting file hash object -- Using SHA3-256 (Keccak) - https://pycryptodome.readthedocs.io/en/latest/src/hash/sha3_256.html 
 def get_file_hash(filename):
     h = SHA3_256.new()
     chunk_size = 64*1024
@@ -79,5 +81,5 @@ def get_file_hash(filename):
             if len(chunk) == 0:
                 break
             h.update(chunk)
-    return h.hexdigest()
+    return h
     
