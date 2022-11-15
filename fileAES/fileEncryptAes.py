@@ -1,5 +1,6 @@
 import os, random, struct
 from Crypto.Cipher import AES
+from Crypto.Hash import SHA3_256
 
 def encrypt_file(key, in_filename, iv, out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
@@ -68,3 +69,15 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
                 outfile.write(decryptor.decrypt(chunk))
 
             outfile.truncate(origsize)
+
+def get_file_hash(filename):
+    h = SHA3_256.new()
+    chunk_size = 64*1024
+    with open(filename, 'rb') as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if len(chunk) == 0:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+    

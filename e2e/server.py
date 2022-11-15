@@ -20,6 +20,7 @@ def sendMsg(conn,publicKey):
 def recvMsg(conn,key):
     try:
         encMessage = conn.recv(1024)
+        # Private Key is here
         decMessage = decryptMessage(key.exportKey(), encMessage)
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
@@ -35,11 +36,11 @@ def connectClient(s, key):
         s.listen()
         conn, addr = s.accept()
         print(f"[CONSOLE] connected by {addr}")
-        #Send public
+        #Send public key to client
         conn.send(key.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
         print("[CONSOLE] Sent Public Key")
-        # Required for server to send a message -- not needed currently
-        #publicKey = RSA.importKey(conn.recv(1024), passphrase=None)
+        # Get public key of client
+        publicKey = RSA.importKey(conn.recv(1024), passphrase=None)
 
         # Used to wait and recieve key from client
         key = recvMsg(conn,key)

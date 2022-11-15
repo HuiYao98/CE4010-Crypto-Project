@@ -2,7 +2,9 @@ from e2e.client import startClient
 from e2e.server import startServer, connectClient
 
 from fileAES.AesMain import *
+from fileAES.fileEncryptAes import *
 
+print(get_file_hash("testFile.txt"))
 while True:
     userInput = input("""Welcome to our secure file transfer service! 
 1. Send file

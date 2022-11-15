@@ -36,7 +36,9 @@ def startClient(encryptedAESKey):
         # reciever publicKey
         publicKey = RSA.importKey(s.recv(1024), passphrase=None)
         print("[CONSOLE] Public key recieved")
-        #s.send(RSAkey.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
+        # Send public key of client to server
+        s.send(RSAkey.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
+        # Sending AES Key
         print("[CONSOLE] Sending AES key...\n")
         #t = threading.Thread(target=recvMsg, args=(s,RSAkey,))
         #t.start()

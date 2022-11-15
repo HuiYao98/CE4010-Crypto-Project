@@ -1,9 +1,9 @@
 from Crypto.Cipher import AES
-from fileAES.fileEncryptAes import decrypt_file, encrypt_file
+from fileAES.fileEncryptAes import decrypt_file, encrypt_file, get_file_hash
 
 def generateAESkey():
-    # Define key here -- need to come up with key generation algo thats random
-    key = "0123456789abcdef".encode("utf8")
+    # Define key here -- need to come up with key generation algo thats random - AES-256
+    key = "0123456789abcdefghijklmn".encode("utf8")
     return key
 
 def initializeAESencrypt():
