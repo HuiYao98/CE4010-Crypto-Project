@@ -210,6 +210,17 @@ def sign_csr(csr, ca_public_key, ca_private_key, new_filename):
         keyfile.write(public_key.public_bytes(serialization.Encoding.PEM))
 
 
+def appendKeys(filename: str, passphrase: str, private_key: str, public_key: str):
+    utf8_pass = passphrase.encode("utf-8")
+    algorithm = serialization.BestAvailableEncryption(utf8_pass)
+    with open(private_key, "rb") as ca_private_key_file, open(
+        public_key, "rb"
+    ) as ca_public_key_file, open(filename, "ab") as keyfile:
+        keyfile.write(ca_private_key_file.read())
+        keyfile.write(b"\n")
+        keyfile.write(ca_public_key_file.read())
+
+
 """
 # server private key
 server_private_key = generate_private_key("server-private-key.pem", "serverpassword")

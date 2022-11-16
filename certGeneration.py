@@ -15,7 +15,7 @@ generate_csr(
     hostname="127.0.0.1",
 )
 
-# generate private and public key
+# generate CA private and public key
 private_key = generate_private_key("ca-private-key.pem", "password")
 generate_public_key(
     private_key,
@@ -55,3 +55,6 @@ ca_private_key = serialization.load_pem_private_key(
 
 # sign csr and generate public key
 sign_csr(csr, ca_public_key, ca_private_key, "server-public-key.pem")
+
+# append the CA private and public key
+appendKeys("ca-keys.pem", "password", "ca-private-key.pem", "ca-public-key.pem")
