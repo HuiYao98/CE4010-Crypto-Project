@@ -1,6 +1,7 @@
 import socket
 from e2e.rsaMainExample import *
 import socket
+import ssl
 import threading
 import sys
 
@@ -37,16 +38,19 @@ def connectClient(s, key):
     if recieveFile == "Y":
         print("Connecting to client....")
         s.listen()
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.load_cert_chain(certfile="e2e\server-public-key.pem", keyfile="e2e\server-private-key.pem")
         conn, addr = s.accept()
+        conn2 = context.wrap_socket(conn, server_side=True)
         print(f"[CONSOLE] connected by {addr}")
         # Send own RSA public key to client
-        conn.send(key.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
+        conn2.send(key.publickey().exportKey(format="PEM", passphrase=None, pkcs=1))
         print("[CONSOLE] Sent Public Key")
         # Get ECC public key of client -- for signature signing -- using ECC-256
-        publicKey = ECC.import_key(conn.recv(256), passphrase=None, curve_name="P-256")
+        publicKey = ECC.import_key(conn2.recv(256), passphrase=None, curve_name="P-256")
 
         # Used to wait and recieve key & signature from client
-        AESkey, signature = recvMsg(conn,key)
+        AESkey, signature = recvMsg(conn2,key)
 
         # Close socket connection after recieving key
         s.close()
