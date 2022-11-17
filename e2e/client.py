@@ -14,10 +14,12 @@ def sendMsg(s,publicKey,encryptedAESKey,fileHash,ECCkey):
     signature = signingMessage(ECCkey, fileHash)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    print(f"{current_time:} {encMsg}")
+    print("AES Key after encryption:",encMsg)
+    #print(f"{current_time:} {encMsg}\n")
     # Send encrypted AES key through socket
     s.send(encMsg)
-    #print(f"{current_time:} {signature}")
+    print("Signature:", signature)
+    #print(f"{current_time:} {signature}\n")
     # Send signature through socket -- need check if this needs to be encrypted?
     s.send(signature)
     print("[CONSOLE] Sent!")
@@ -36,7 +38,7 @@ def startClient(encryptedAESKey,fileHash):
         print("[CONSOLE] Client connected")
         # Reciever publicKey
         publicKey = RSA.importKey(ss.recv(1024), passphrase=None)
-        print("[CONSOLE] Public key recieved")
+        print("[CONSOLE] Public key recieved from server")
         # Send public ECC key of client to server
         ss.send(ECCkey.public_key().export_key(format="SEC1"))
         # Sending AES Key

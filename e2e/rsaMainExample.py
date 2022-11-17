@@ -36,16 +36,17 @@ def decryptMessage(privateKey, message):
     return cipher_rsa.decrypt(message)
 
 # Use for signing message using ECDSA - https://pycryptodome.readthedocs.io/en/latest/src/signature/dsa.html 
-def signingMessage(key, hash):
-   signer = DSS.new(key, 'fips-186-3')
+def signingMessage(privatekey, hash):
+   signer = DSS.new(privatekey, 'fips-186-3')
    signature = signer.sign(hash)
    return signature
 
 # Use for verify message using ECDSA
-def verifyMessage(key, hash, signature):
-   verifier = DSS.new(key, 'fips-186-3')
+def verifyMessage(publickey, hash, signature):
+   verifier = DSS.new(publickey, 'fips-186-3')
    try:
       verifier.verify(hash, signature)
       return 1
+   # If signature does not match, means
    except ValueError:
       return 0

@@ -31,9 +31,11 @@ def encrypt_file(key, in_filename, iv, out_filename=None, chunksize=64*1024):
 
     with open(in_filename, 'rb') as infile:
         with open(out_filename, 'wb') as outfile:
+            # Interpreting bytes as packed binary data:
             outfile.write(struct.pack('<Q', filesize))
+            # Put IV at start of the file
             outfile.write(iv)
-
+            # Encrypting in blocks of 16
             while True:
                 chunk = infile.read(chunksize)
                 chunk = chunk.decode('utf8')
@@ -44,7 +46,7 @@ def encrypt_file(key, in_filename, iv, out_filename=None, chunksize=64*1024):
                 chunk = chunk.encode('utf8')
                 outfile.write(encryptor.encrypt(chunk))
 
-def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
+def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     """ Decrypts a file using AES (CBC mode) with the
         given key. Parameters are similar to encrypt_file,
         with one difference: out_filename, if not supplied

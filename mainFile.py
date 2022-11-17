@@ -16,15 +16,16 @@ while True:
         print("Starting sending client....")
         # Get AES parameters (ie. Key, IV and filename to encrypt)
         IV, AESkey, filenameEncrypt = initializeAESencrypt()
-
+        print("AES Key before encryption:", AESkey)
         # Generate hash for the target file -- Used for DSS signature
         fileHash = get_file_hash(filenameEncrypt)
+        print("File Hash:", fileHash.hexdigest())
 
         # Encrypt the file using AES
         encrypt_file(
             AESkey, filenameEncrypt, IV, out_filename=None, chunksize=64 * 1024
         )
-
+        print("File encrypted! Sending key to server....")
         # Start client for sending AES key to server
         startClient(AESkey.decode(), fileHash)
 
@@ -47,9 +48,8 @@ while True:
 
         # print out the text of file
         with open(filename, "rb") as plaintext:
-            print(plaintext.read())
+            print("File contents:", plaintext.read())
             
-
         # Generate hash for the file that was recieved -- Used for DSS signature
         fileHash = get_file_hash(filename)
 

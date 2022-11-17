@@ -28,7 +28,10 @@ def recvMsg(conn,key):
         decMessage = decryptMessage(key.exportKey(), encMessage)
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
-        print(f"{current_time:} {decMessage.decode()}")
+        print("AES Key after decryption:", decMessage.decode())
+        print("Signature recieved:", signature)
+        #print(f"{current_time:} {decMessage.decode()}\n")
+        #print(f"{current_time:} {signature}\n")
         return decMessage.decode(),signature
     except OSError:
         pass
