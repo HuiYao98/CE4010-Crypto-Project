@@ -12,10 +12,12 @@ def generateKey():
     key = RSA.generate(1024)
     return key
 
+
 # Generate ECC key pair - https://pycryptodome.readthedocs.io/en/latest/src/public_key/ecc.html#
 def generateECCKey():
-   key = ECC.generate(curve='P-256')
-   return key
+    key = ECC.generate(curve="P-256")
+    return key
+
 
 # encrypting the data using RSA, sender publickey
 # PKCS1_OAEP is an asymetric chipher base on RSA and OAEP padding
@@ -35,18 +37,21 @@ def decryptMessage(privateKey, message):
     cipher_rsa = PKCS1_OAEP.new(privateKey)
     return cipher_rsa.decrypt(message)
 
-# Use for signing message using ECDSA - https://pycryptodome.readthedocs.io/en/latest/src/signature/dsa.html 
+
+# Use for signing message using ECDSA - https://pycryptodome.readthedocs.io/en/latest/src/signature/dsa.html
 def signingMessage(privatekey, hash):
-   signer = DSS.new(privatekey, 'fips-186-3')
-   signature = signer.sign(hash)
-   return signature
+    signer = DSS.new(privatekey, "fips-186-3")
+    signature = signer.sign(hash)
+    return signature
+
 
 # Use for verify message using ECDSA
 def verifyMessage(publickey, hash, signature):
-   verifier = DSS.new(publickey, 'fips-186-3')
-   try:
-      verifier.verify(hash, signature)
-      return 1
-   # If signature does not match, means
-   except ValueError:
-      return 0
+    print("Verifing signature using ECDSA")
+    verifier = DSS.new(publickey, "fips-186-3")
+    try:
+        verifier.verify(hash, signature)
+        return 1
+    # If signature does not match, means
+    except ValueError:
+        return 0

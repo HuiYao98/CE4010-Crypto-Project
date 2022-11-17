@@ -13,7 +13,7 @@ while True:
     )
     if userInput == "1":
 
-        print("Starting sending client....")
+        print("[CONSOLE] Starting Client and Handshake ")
         # Get AES parameters (ie. Key, IV and filename to encrypt)
         IV, AESkey, filenameEncrypt = initializeAESencrypt()
         print("AES Key before encryption:", AESkey)
@@ -25,16 +25,18 @@ while True:
         encrypt_file(
             AESkey, filenameEncrypt, IV, out_filename=None, chunksize=64 * 1024
         )
-        print("File encrypted! Sending key to server....")
+        print("File encrypted using AES")
         # Start client for sending AES key to server
         startClient(AESkey.decode(), fileHash)
 
     elif userInput == "2":
-        print("Starting server....")
+        print("[CONSOLE] Starting server")
 
         # Get socket and RSA public key for server side
+        print("Generating Server RSA keys and setting up socket")
         s, RSAkey = startServer()
 
+        
         # Sending public key to client, and recieving AES key, and ECC public key + signature for digital signature verification
         AESkey, ECCpubKey, signature = connectClient(s, RSAkey)
 

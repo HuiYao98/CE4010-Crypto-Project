@@ -2,11 +2,11 @@ from e2e.server import *
 from certAuthority import *
 
 # server private key
-server_private_key = generate_private_key("server-private-key.pem", "password")
+server_private_key = generate_private_key("e2e/server-private-key.pem", "password")
 # server generate csr
 generate_csr(
     server_private_key,
-    filename="server-csr.pem",
+    filename="e2e/server-csr.pem",
     country="US",
     state="Maryland",
     locality="Baltimore",
@@ -29,7 +29,7 @@ generate_public_key(
 
 # Begin by loading your CSR:
 # Opening server-csr.pem file
-csr_file = open("server-csr.pem", "rb")
+csr_file = open("e2e/server-csr.pem", "rb")
 # Create csr object
 csr = x509.load_pem_x509_csr(csr_file.read(), default_backend())
 
@@ -54,7 +54,7 @@ ca_private_key = serialization.load_pem_private_key(
 )
 
 # sign csr and generate public key
-sign_csr(csr, ca_public_key, ca_private_key, "server-public-key.pem")
+sign_csr(csr, ca_public_key, ca_private_key, "e2e/server-public-key.pem")
 
 # append the CA private and public key
-appendKeys("ca-keys.pem", "password", "ca-private-key.pem", "ca-public-key.pem")
+appendKeys("e2e/ca-keys.pem", "password", "ca-private-key.pem", "ca-public-key.pem")
